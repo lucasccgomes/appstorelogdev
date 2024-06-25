@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 
 const CarouselItem = ({ imageSrc, title, year, description, link }) => (
-  <div className="flex p-8 flex-col m-4 md:flex-row items-center bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden">
+  <div className="flex p-8 flex-col m-4 md:flex-row items-center bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden focus:outline-none transition duration-500 ease-in-out">
     <img src={imageSrc} alt={title} className="w-full md:w-1/3 object-cover rounded-2xl shadow-2xl" />
     <div className="p-6 md:w-2/3">
       <h2 className="text-2xl font-bold dark:text-white text-gray-700">{title}</h2>
