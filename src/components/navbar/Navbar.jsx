@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
-
-
-import { MdDarkMode, MdOutlineLightMode } from "react-icons/md";
+import { MdDarkMode, MdOutlineLightMode, MdInstallDesktop, MdInstallMobile } from "react-icons/md";
 import { FaBars } from "react-icons/fa6";
 import { CSSTransition } from 'react-transition-group';
+import { isMobile } from 'react-device-detect';
 import '../../animations/animations.css';
 
 const Navbar = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isInstallable, setIsInstallable] = useState(false);
 
   useEffect(() => {
     if (darkMode) {
@@ -16,6 +17,29 @@ const Navbar = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
+
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsInstallable(true);
+    };
+
+    const handleAppInstalled = () => {
+      setIsInstallable(false);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    // Verificar se o PWA já está instalado
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstallable(false);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
   }, [darkMode]);
 
   const toggleDarkMode = () => {
@@ -24,6 +48,21 @@ const Navbar = () => {
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
+  };
+
+  const handleInstallClick = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted the A2HS prompt');
+        } else {
+          console.log('User dismissed the A2HS prompt');
+        }
+        setDeferredPrompt(null);
+        setIsInstallable(false);
+      });
+    }
   };
 
   const navLinks = [
@@ -55,13 +94,22 @@ const Navbar = () => {
                 ))}
               </div>
             </div>
-            <div className="flex items-center">
-            <button
+            <div className="flex items-center space-x-4">
+              <button
                 onClick={toggleDarkMode}
                 className="bg-gray-200 dark:bg-gray-600 p-2 rounded-full focus:outline-none transition duration-500 ease-in-out"
               >
                 {darkMode ? <MdOutlineLightMode /> : <MdDarkMode />}
               </button>
+              {isInstallable && (
+                <button
+                  onClick={handleInstallClick}
+                  className="bg-teal-500 text-white px-3 py-2 rounded-md text-sm font-medium transition duration-500 ease-in-out flex items-center "
+                >
+                  {isMobile ? <MdInstallMobile /> : <MdInstallDesktop />}
+                  <span className="ml-2">Instalar App</span>
+                </button>
+              )}
               <button
                 onClick={toggleMenu}
                 className="ml-4 md:hidden bg-gray-200 dark:bg-gray-600 p-2 rounded-full focus:outline-none transition duration-500 ease-in-out"
